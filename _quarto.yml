@@ -1,5 +1,6 @@
 project:
   type: website
+  output-dir: docs
 
 website:
   title: "nm-exercise_27-28.github.io"
@@ -11,11 +12,7 @@ website:
 
 format:
   html:
-    theme:
-      - cosmo
-      - brand
-    css: styles.css
-    toc: true
+    self-contained: true
 
 editor: visual
 
