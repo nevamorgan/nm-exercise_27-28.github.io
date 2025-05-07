@@ -166,7 +166,7 @@ Last, we want to visualize the river profile.
 # Line Plot
 
 ggplot(poudre_clean, aes(x = ID, y = dem)) +
-  geom_line(color = "dodgerblue1") +
+  geom_line(color = "dodgerblue1", size = 0.8) +
   labs(title = "Poudre River Elevation",
        x = "River ID",
        y = "Elevation (cm)",
