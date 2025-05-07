@@ -4,7 +4,49 @@
     "href": "index.html",
     "title": "Daily Assignment 27 & 28",
     "section": "",
-    "text": "We will extract a river profile from the Poudre River in Fort Collins, CO."
+    "text": "Beginning Libraries:\nlibrary(tidyverse)\n\nWarning: package 'tidyverse' was built under R version 4.4.3\n\n\nWarning: package 'ggplot2' was built under R version 4.4.3\n\n\nWarning: package 'tidyr' was built under R version 4.4.3\n\n\nWarning: package 'readr' was built under R version 4.4.3\n\n\nWarning: package 'purrr' was built under R version 4.4.3\n\n\nWarning: package 'dplyr' was built under R version 4.4.3\n\n\nWarning: package 'lubridate' was built under R version 4.4.3\n\n\n── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──\n✔ dplyr     1.1.4     ✔ readr     2.1.5\n✔ forcats   1.0.0     ✔ stringr   1.5.1\n✔ ggplot2   3.5.2     ✔ tibble    3.2.1\n✔ lubridate 1.9.4     ✔ tidyr     1.3.1\n✔ purrr     1.0.4     \n── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──\n✖ dplyr::filter() masks stats::filter()\n✖ dplyr::lag()    masks stats::lag()\nℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors\n\nlibrary(tidymodels)\n\nWarning: package 'tidymodels' was built under R version 4.4.3\n\n\n── Attaching packages ────────────────────────────────────── tidymodels 1.3.0 ──\n✔ broom        1.0.8     ✔ rsample      1.3.0\n✔ dials        1.4.0     ✔ tune         1.3.0\n✔ infer        1.0.8     ✔ workflows    1.2.0\n✔ modeldata    1.4.0     ✔ workflowsets 1.1.0\n✔ parsnip      1.3.1     ✔ yardstick    1.3.2\n✔ recipes      1.3.0     \n\n\nWarning: package 'broom' was built under R version 4.4.3\n\n\nWarning: package 'dials' was built under R version 4.4.3\n\n\nWarning: package 'infer' was built under R version 4.4.3\n\n\nWarning: package 'parsnip' was built under R version 4.4.3\n\n\nWarning: package 'recipes' was built under R version 4.4.3\n\n\nWarning: package 'rsample' was built under R version 4.4.3\n\n\nWarning: package 'tune' was built under R version 4.4.3\n\n\nWarning: package 'workflows' was built under R version 4.4.3\n\n\nWarning: package 'yardstick' was built under R version 4.4.3\n\n\n── Conflicts ───────────────────────────────────────── tidymodels_conflicts() ──\n✖ scales::discard() masks purrr::discard()\n✖ dplyr::filter()   masks stats::filter()\n✖ recipes::fixed()  masks stringr::fixed()\n✖ dplyr::lag()      masks stats::lag()\n✖ yardstick::spec() masks readr::spec()\n✖ recipes::step()   masks stats::step()\n\nlibrary(sf)\n\nWarning: package 'sf' was built under R version 4.4.3\n\n\nLinking to GEOS 3.13.0, GDAL 3.10.1, PROJ 9.5.1; sf_use_s2() is TRUE\n\nlibrary(terra)\n\nWarning: package 'terra' was built under R version 4.4.3\n\n\nterra 1.8.42\n\nAttaching package: 'terra'\n\nThe following object is masked from 'package:dials':\n\n    buffer\n\nThe following object is masked from 'package:scales':\n\n    rescale\n\nThe following object is masked from 'package:tidyr':\n\n    extract\n\nlibrary(raster)\n\nWarning: package 'raster' was built under R version 4.4.3\n\n\nLoading required package: sp\n\n\nWarning: package 'sp' was built under R version 4.4.3\n\n\n\nAttaching package: 'raster'\n\nThe following object is masked from 'package:dplyr':\n\n    select\n\nlibrary(ggplot2)\nlibrary(osmdata)\n\nWarning: package 'osmdata' was built under R version 4.4.3\n\n\nData (c) OpenStreetMap contributors, ODbL 1.0. https://www.openstreetmap.org/copyright\n\nlibrary(AOI)"
+  },
+  {
+    "objectID": "index.html#define-river-object",
+    "href": "index.html#define-river-object",
+    "title": "Daily Assignment 27 & 28",
+    "section": "Define River Object",
+    "text": "Define River Object\nWe will extract a river profile from the Poudre River in Fort Collins, CO.\n\nTo do use the code from lecture to extract all waterways from OpenStreetMap for the Bounding Box of Fort Collins, CO.\n\n\n#Base code provided in slides (adjusted to allow me to see the .vrt)\n\n(bb = AOI::geocode(\"Fort Collins\", bbox = TRUE) |&gt; \n  st_transform(5070))\n\nSimple feature collection with 1 feature and 5 fields\nGeometry type: POLYGON\nDimension:     XY\nBounding box:  xmin: -769700.4 ymin: 1978485 xmax: -752549.8 ymax: 2000235\nProjected CRS: NAD83 / Conus Albers\n       request score         arcgis_address         x        y\n1 Fort Collins   100 Fort Collins, Colorado -105.0825 40.58897\n                        geometry\n1 POLYGON ((-769700.4 1979944...\n\nSys.setenv(\"AWS_NO_SIGN_REQUEST\" = \"YES\")\nelev &lt;- rast('/vsis3/lynker-spatial/gridded-resources/dem.vrt') |&gt; crop(bb)\n\nwriteRaster(elev, filename = \"img/foco-elev.tif\", overwrite = TRUE)\n\nwriteRaster(elev, filename = \"img/foco-elev-cm.tif\", overwrite = TRUE)\n\nfc = AOI::geocode(\"Fort Collins\", bbox = TRUE) |&gt; \n  st_transform(crs(elev))\n\nfoco_rivers &lt;- osmdata::opq(st_bbox(st_transform(fc,4326))) |&gt; \n  add_osm_feature(\"waterway\") |&gt; \n  osmdata_sf()\n\n\nFilter the osm_lines object to only include the Cache la Poudre River and merge the lines into a single line object with st_union(). Be sure to convert the object to a sf object with st_as_sf() when done.\n\n\n# Filtering to only look at the Cache la Poudre River:\n\npoudre &lt;- foco_rivers$osm_lines %&gt;%\n  filter(str_detect(name, \"Poudre\")) %&gt;%\n  st_union() %&gt;%\n  st_as_sf()\n\n\nUse st_length() to compute the length of the river for future calculations.\n\n\nriver_l &lt;- st_length(poudre)\n\nprint(paste(\"Poudre River Length (meters) = \", river_l))\n\n[1] \"Poudre River Length (meters) =  243211.736761777\"\n\n\n\nUse st_cast() to convert the river object to a POINT object and save it as poudre_pts for latter extraction tasks\n\n\npoudre_pts &lt;- st_cast(poudre, \"POINT\")\n\nnrow(poudre_pts)\n\n[1] 5492"
+  },
+  {
+    "objectID": "index.html#define-dem-object",
+    "href": "index.html#define-dem-object",
+    "title": "Daily Assignment 27 & 28",
+    "section": "Define DEM Object",
+    "text": "Define DEM Object\n\nUse the rast() function to read in the DEM file from the lynker-spatial S3 bucket shared in last assignment. Be sure to use the vsis3 prefix!\n\n\n# Already done, with beginning code, but here it is again!\nSys.setenv(\"AWS_NO_SIGN_REQUEST\" = \"YES\")\nelev &lt;- rast('/vsis3/lynker-spatial/gridded-resources/dem.vrt') |&gt;\n  crop (bb)"
+  },
+  {
+    "objectID": "index.html#extract-river-profile",
+    "href": "index.html#extract-river-profile",
+    "title": "Daily Assignment 27 & 28",
+    "section": "Extract River Profile",
+    "text": "Extract River Profile\n\nUse the extract() function to extract the elevation values from the DEM at the points along the river.\n\n\nelev_values &lt;- terra::extract(elev, vect(poudre_pts))\n\nWarning: [extract] transforming vector data to the CRS of the raster\n\n\n\nUse bind_cols() to combine the spatial river points with the extracted elevation values.\n\n\npoudre_profile &lt;- bind_cols(poudre_pts, elev_values)\n\n\nUse mutate() to add a new column called ID that is a sequence from 1 to the number of points in the river (n()).\n\n\npoudre_profile &lt;- poudre_profile %&gt;%\n  mutate(ID = row_number())"
+  },
+  {
+    "objectID": "index.html#compute-sinuosity",
+    "href": "index.html#compute-sinuosity",
+    "title": "Daily Assignment 27 & 28",
+    "section": "Compute Sinuosity",
+    "text": "Compute Sinuosity\n\nUse the st_distance() function to compute the straight line distance between the first and last points in the river.\n\n\nfirst &lt;- st_geometry(poudre_pts)[1]\n\nlast &lt;- st_geometry(poudre_pts)[nrow(poudre_pts)]\n\nline_dist &lt;- st_distance(first, last)\n\n\nDivide the length of the full river (step 3) by this straight line distance to get the sinuosity. Report the value and what it means. Does this value make sense with respect to the complete Poudre River?\n\n\npoudre_sin &lt;- as.numeric(river_l / line_dist)\n\nprint(paste(\"Sinuosity of the Poudre River =\", round(poudre_sin, 2)))\n\n[1] \"Sinuosity of the Poudre River = 18.18\""
+  },
+  {
+    "objectID": "index.html#compute-slope",
+    "href": "index.html#compute-slope",
+    "title": "Daily Assignment 27 & 28",
+    "section": "Compute Slope",
+    "text": "Compute Slope\n\nThe slope of a river is the change in elevation between the inlet and outlet divided by the length of the river. Compute this value and report it. Remember the units of the elevation (cm) and of your length!\n\n\npoudre_clean &lt;- poudre_profile %&gt;% filter(!is.na(dem))\n\nstart_e &lt;- poudre_clean$dem[1]\n\nend_e &lt;- poudre_clean$dem[nrow(poudre_clean)]\n\nelev_diff &lt;- (start_e - end_e) / 100\n\nslope &lt;- as.numeric(elev_diff / river_l)\n\nprint(paste(\"Slope of the Poudre River (m/m) =\", round(slope, 5)))\n\n[1] \"Slope of the Poudre River (m/m) = -4e-04\""
+  },
+  {
+    "objectID": "index.html#map-profile-2-ways",
+    "href": "index.html#map-profile-2-ways",
+    "title": "Daily Assignment 27 & 28",
+    "section": "Map Profile: 2 ways",
+    "text": "Map Profile: 2 ways\nLast, we want to visualize the river profile.\n\nUse ggplot() to create a line plot of the elevation values along the river. Be sure to use the ID column as the x-axis and the dem column as the y-axis. Add nice lables and themese to your chart.\n\n\n# Line Plot\n\nggplot(poudre_clean, aes(x = ID, y = dem)) +\n  geom_line(color = \"dodgerblue1\") +\n  labs(title = \"Poudre River Elevation\",\n       x = \"River ID\",\n       y = \"Elevation (cm)\",\n       caption = \"ESS330 | DA 27 & 28 | Neva Morgan\") +\n  theme_linedraw()\n\n\n\n\n\n\n\n\n13.Use ggplot() to plot the spatial mpa of the river profile. Use the geom_sf() function to plot the river and color it by elevation. Be sure to use a nice color scale and theme.\n\n# Spatial MPA of the Poudre\nggplot(poudre_clean) +\n  geom_sf(aes(color = dem), size = 2) +\n  scale_color_viridis_c(name = \"Elevation (cm)\", option = \"C\") +\n  labs(title = \"Poudre River Colored by Elevation\",\n       x = \"Longitude\",\n       y = \"Latitude\",\n       caption = \"ESS330 | DA 27 & 28 | Neva Morgan\") +\n  theme_linedraw()\n\n\n\n\n\n\n\n\nConvert all of this into a Quarto document and submit a link to the deployed document on GitHub to the Canvas.\nCongrats! &lt;- Thank you :)"
   },
   {
     "objectID": "about.html",
@@ -12,12 +54,5 @@
     "title": "About",
     "section": "",
     "text": "About this site\n\n1 + 1\n\n[1] 2"
-  },
-  {
-    "objectID": "index.html#objective-define-river-object",
-    "href": "index.html#objective-define-river-object",
-    "title": "Daily Assignment 27 & 28",
-    "section": "",
-    "text": "We will extract a river profile from the Poudre River in Fort Collins, CO."
   }
 ]

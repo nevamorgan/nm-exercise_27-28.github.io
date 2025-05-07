@@ -6,6 +6,191 @@ author:
     email: neva.morgan@colostate.edu
 ---
 
-## Objective: Define River Object
+Beginning Libraries:
+```{r}
+library(tidyverse)
+library(tidymodels)
+library(sf)
+library(terra)
+library(raster)
+library(ggplot2)
+library(osmdata)
+library(AOI)
+
+```
+
+
+## Define River Object
 
 We will extract a river profile from the Poudre River in Fort Collins, CO.
+
+1. To do use the code from lecture to extract all waterways from OpenStreetMap for the Bounding Box of Fort Collins, CO.
+```{r}
+#Base code provided in slides (adjusted to allow me to see the .vrt)
+
+(bb = AOI::geocode("Fort Collins", bbox = TRUE) |> 
+  st_transform(5070))
+
+Sys.setenv("AWS_NO_SIGN_REQUEST" = "YES")
+elev <- rast('/vsis3/lynker-spatial/gridded-resources/dem.vrt') |> crop(bb)
+
+writeRaster(elev, filename = "img/foco-elev.tif", overwrite = TRUE)
+
+writeRaster(elev, filename = "img/foco-elev-cm.tif", overwrite = TRUE)
+
+fc = AOI::geocode("Fort Collins", bbox = TRUE) |> 
+  st_transform(crs(elev))
+
+foco_rivers <- osmdata::opq(st_bbox(st_transform(fc,4326))) |> 
+  add_osm_feature("waterway") |> 
+  osmdata_sf()
+```
+
+
+2. Filter the osm_lines object to only include the Cache la Poudre River and merge the lines into a single line object with st_union(). Be sure to convert the object to a sf object with st_as_sf() when done.
+```{r}
+# Filtering to only look at the Cache la Poudre River:
+
+poudre <- foco_rivers$osm_lines %>%
+  filter(str_detect(name, "Poudre")) %>%
+  st_union() %>%
+  st_as_sf()
+
+```
+
+
+3. Use st_length() to compute the length of the river for future calculations.
+```{r}
+river_l <- st_length(poudre)
+
+print(paste("Poudre River Length (meters) = ", river_l))
+```
+
+
+4. Use st_cast() to convert the river object to a POINT object and save it as poudre_pts for latter extraction tasks
+```{r}
+poudre_pts <- st_cast(poudre, "POINT")
+
+nrow(poudre_pts)
+```
+
+
+
+
+## Define DEM Object
+
+5. Use the rast() function to read in the DEM file from the lynker-spatial S3 bucket shared in last assignment. Be sure to use the vsis3 prefix!
+
+```{r}
+# Already done, with beginning code, but here it is again!
+Sys.setenv("AWS_NO_SIGN_REQUEST" = "YES")
+elev <- rast('/vsis3/lynker-spatial/gridded-resources/dem.vrt') |>
+  crop (bb)
+
+```
+
+
+
+
+## Extract River Profile
+
+6. Use the extract() function to extract the elevation values from the DEM at the points along the river.
+```{r}
+elev_values <- terra::extract(elev, vect(poudre_pts))
+```
+
+
+7. Use bind_cols() to combine the spatial river points with the extracted elevation values.
+```{r}
+poudre_profile <- bind_cols(poudre_pts, elev_values)
+```
+
+
+8. Use mutate() to add a new column called ID that is a sequence from 1 to the number of points in the river (n()).
+```{r}
+poudre_profile <- poudre_profile %>%
+  mutate(ID = row_number())
+```
+
+
+
+
+## Compute Sinuosity
+
+9. Use the st_distance() function to compute the straight line distance between the first and last points in the river.
+```{r}
+first <- st_geometry(poudre_pts)[1]
+
+last <- st_geometry(poudre_pts)[nrow(poudre_pts)]
+
+line_dist <- st_distance(first, last)
+```
+
+
+10. Divide the length of the full river (step 3) by this straight line distance to get the sinuosity. Report the value and what it means. Does this value make sense with respect to the complete Poudre River?
+```{r}
+poudre_sin <- as.numeric(river_l / line_dist)
+
+print(paste("Sinuosity of the Poudre River =", round(poudre_sin, 2)))
+```
+
+
+
+
+## Compute Slope
+
+11. The slope of a river is the change in elevation between the inlet and outlet divided by the length of the river. Compute this value and report it. Remember the units of the elevation (cm) and of your length!
+```{r}
+poudre_clean <- poudre_profile %>% filter(!is.na(dem))
+
+start_e <- poudre_clean$dem[1]
+
+end_e <- poudre_clean$dem[nrow(poudre_clean)]
+
+elev_diff <- (start_e - end_e) / 100
+
+slope <- as.numeric(elev_diff / river_l)
+
+print(paste("Slope of the Poudre River (m/m) =", round(slope, 5)))
+```
+
+
+
+
+## Map Profile: 2 ways
+
+Last, we want to visualize the river profile.
+
+12. Use ggplot() to create a line plot of the elevation values along the river. Be sure to use the ID column as the x-axis and the dem column as the y-axis. Add nice lables and themese to your chart.
+```{r}
+# Line Plot
+
+ggplot(poudre_clean, aes(x = ID, y = dem)) +
+  geom_line(color = "dodgerblue1") +
+  labs(title = "Poudre River Elevation",
+       x = "River ID",
+       y = "Elevation (cm)",
+       caption = "ESS330 | DA 27 & 28 | Neva Morgan") +
+  theme_linedraw()
+```
+
+
+13.Use ggplot() to plot the spatial mpa of the river profile. Use the geom_sf() function to plot the river and color it by elevation. Be sure to use a nice color scale and theme.
+```{r}
+# Spatial MPA of the Poudre
+ggplot(poudre_clean) +
+  geom_sf(aes(color = dem), size = 2) +
+  scale_color_viridis_c(name = "Elevation (cm)", option = "C") +
+  labs(title = "Poudre River Colored by Elevation",
+       x = "Longitude",
+       y = "Latitude",
+       caption = "ESS330 | DA 27 & 28 | Neva Morgan") +
+  theme_linedraw()
+```
+
+
+Convert all of this into a Quarto document and submit a link to the deployed document on GitHub to the Canvas.
+
+Congrats! <- Thank you :)
+
+
