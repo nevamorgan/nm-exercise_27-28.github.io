@@ -4,7 +4,7 @@
     "href": "index.html",
     "title": "Daily Assignment 27 & 28",
     "section": "",
-    "text": "This is a Quarto website.\nTo learn more about Quarto websites visit https://quarto.org/docs/websites.\n\n1 + 1\n\n[1] 2"
+    "text": "We will extract a river profile from the Poudre River in Fort Collins, CO."
   },
   {
     "objectID": "about.html",
@@ -12,5 +12,12 @@
     "title": "About",
     "section": "",
     "text": "About this site\n\n1 + 1\n\n[1] 2"
+  },
+  {
+    "objectID": "index.html#objective-define-river-object",
+    "href": "index.html#objective-define-river-object",
+    "title": "Daily Assignment 27 & 28",
+    "section": "",
+    "text": "We will extract a river profile from the Poudre River in Fort Collins, CO."
   }
 ]
