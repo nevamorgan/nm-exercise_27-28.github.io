@@ -1,5 +1,11 @@
 ---
-title: "nm-exercise_27-28.github.io"
+title: "Daily Assignment 27 & 28"
+
+subtitle: 'Define River Objective: We will extract a river profile from the Poudre River in Fort Collins, CO.'
+
+author:
+  - name: Neva Morgan
+    email: neva.morgan@colostate.edu
 ---
 
 This is a Quarto website.

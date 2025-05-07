@@ -3,12 +3,11 @@ project:
   output-dir: docs
 
 website:
-  title: "nm-exercise_27-28.github.io"
+  title: "ESS330 | SP25 | Daily Assignment 27 & 28"
   navbar:
     left:
       - href: index.qmd
-        text: Home
-      - about.qmd
+        text: Daily Assignment 27 & 28
 
 format:
   html:
